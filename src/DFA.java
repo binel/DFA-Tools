@@ -5,8 +5,10 @@ import java.util.Map.Entry;
 public class DFA {
 	private ArrayList<DFA_Node> nodes; 
 	private DFA_Node start; 
+	private char[] alphabet; 
 	
-	public DFA() {
+	public DFA(char[] alphabet) {
+		this.alphabet = alphabet; 
 		nodes = new ArrayList<DFA_Node>(); 
 	}
 	
@@ -40,13 +42,17 @@ public class DFA {
 		}
 		
 		if(fromNode == null || toNode == null) {
-			throw new NodeNotInListException(); 
+			throw new NodeNotInListException(fromNodeName + "or" + toNodeName); 
 		} else {
 			fromNode.addConnection(toNode, symbol);
 		}
 	}
 	
-	private class NodeNotInListException extends Exception {}
+	public class NodeNotInListException extends Exception {
+		public String message; 
+		public NodeNotInListException(String string) {
+			this.message = string; 
+		}}
 	
 	//reads a string and converts it to a DFA. The String is formatted as follows: 
 	//(name1) [{a, s}];
@@ -99,7 +105,31 @@ public class DFA {
 		}
 	}
 	
-	private class InvalidDFATableStringException extends Exception {}
+	@Override
+	public String toString() {
+		String nodes = "";
+		String edges = "";
+		for(DFA_Node n : this.nodes) {
+			String extras = "";
+			if(n.isAccepting() && n.isStarting()) {
+				extras += "s,a";
+			} else if (n.isAccepting()) {
+				extras += "a";
+			} else if (n.isStarting()) {
+				extras += "s";
+			}
+			
+			nodes += n.getName() + " [" + extras + "];";
+			
+			for(Entry<Character, DFA_Node> e : n.connections) {
+				edges += "edge " + n.getName() + " " + e.getValue().getName() + " " + e.getKey() +";";
+			}
+		}
+		
+		return nodes + edges;
+	}
+	
+	public class InvalidDFATableStringException extends Exception {}
 	
 	private class DFA_Node {
 
@@ -161,7 +191,8 @@ public class DFA {
 
 	public static void main(String args[]) {
 		String DFAString = "start [s];trap [];good [a];edge start trap b;edge start good a;edge good trap b;edge good good a;edge trap trap a;edge trap trap b";
-		DFA dfa = new DFA(); 
+		char[] alphabet = {'a', 'b'};
+		DFA dfa = new DFA(alphabet); 
 		
 		try {
 			dfa.readTableToDFA(DFAString);

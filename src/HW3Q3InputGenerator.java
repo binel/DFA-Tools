@@ -55,9 +55,56 @@ public class HW3Q3InputGenerator {
 	public static void main(String args[]) {
 		HW3Q3InputGenerator gen = new HW3Q3InputGenerator(); 
 		
-		for(int i = 0; i < 10000; i++) {
-			Entry<String, Boolean> e = gen.generateNextInput(); 
-			System.out.println(e.getKey() + "->" + e.getValue());
+		String DFANodes = "1 [s,a];2 [];3 [];4 [];5 [];6 [];7 [];8 [];9 [];10 [];11 [];12 [];13 [];14 [];15 [];trap [];";
+		
+		String DFAEdges = "edge 1 2 0;edge 1 4 1;"
+				+ "edge 2 5 1;edge 2 3 0;"
+				+ "edge 3 1 0;edge 3 trap 1;"
+				+ "edge 4 6 1;edge 4 5 0;"
+				+ "edge 5 trap 0;edge 5 1 1;"
+				+ "edge 6 trap 1;edge 6 7 0;"
+				+ "edge 7 8 0;edge 7 10 1;"
+				+ "edge 8 9 0;edge 8 11 1;"
+				+ "edge 9 1 1;edge 9 trap 0;"
+				+ "edge 10 12 1;edge 10 11 0;"
+				+ "edge 11 7 0;edge 11 trap 1;"
+				+ "edge 12 13 1;edge 12 trap 0;"
+				+ "edge 13 8 0;edge 13 14 1;"
+				+ "edge 14 15 0;edge 14 12 1;"
+				+ "edge 15 7 0;edge 15 trap 1;"
+				+ "edge trap trap 1;edge trap trap 0";
+		
+		String DFAString = DFANodes + DFAEdges; 
+		char[] alphabet = {'0', '1'};
+		DFA dfa = new DFA(alphabet); 
+		
+		try {
+			dfa.readTableToDFA(DFAString);
+		} catch (DFA.NodeNotInListException e) {
+			System.out.println(e.message);
+			e.printStackTrace();
+			return; 
+		} catch (DFA.InvalidDFATableStringException e) { 
+			e.printStackTrace();
 		}
+		
+		double passed = 0; 
+		double failed = 0; 
+		
+		for(int i = 0; i < 100000000; i++) {
+			Entry<String, Boolean> e = gen.generateNextInput(); 
+			Boolean result = dfa.processString(e.getKey());
+			if(result != e.getValue()) {
+				System.out.println("FAILED: " + e.getKey() + " expected " + e.getValue() + ", got " + result);
+				failed++; 
+			} else {
+				//System.out.println("PASSED: " + e.getKey() + " expected " + e.getValue() + ", got " + result);
+				passed++; 
+			}
+		}
+		
+		System.out.println("Accuracy: " + Double.toString(passed / (failed + passed)));
+		
+		System.out.println(dfa.toString());
 	}
 }
